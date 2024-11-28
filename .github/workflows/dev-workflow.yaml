@@ -1,0 +1,87 @@
+name: "Terraform Developer"
+
+on:
+  push:
+    branches:
+    - developer
+    paths:
+    - terraform/**
+  pull_request:
+    branches:
+    - developer
+    paths:
+    - terraform/**
+
+env:
+  WORKSPACE: "dev"
+  aws-region: "us-east-1"
+  destroy: false
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write      
+
+jobs:
+  InfraDev:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+        
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-session-name: GitHub_AWS_OIDC
+          aws-region: ${{ env.aws-region }}
+          role-to-assume: ${{ vars.AWS_ASSUME_ROLE_ARN }}      
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+        
+      - name: Terraform Init
+        id: init
+        run: |
+          terraform init -backend-config="./envs/${{ env.WORKSPACE }}/backend.tfvars" -input=false
+          terraform workspace select -or-create ${{ env.WORKSPACE }}
+        continue-on-error: false
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+        continue-on-error: true 
+
+      - name: Terraform Destroy
+        if: ${{ env.destroy == true }}
+        id: destroy
+        run: terraform destroy -var-file="./envs/${{ env.WORKSPACE }}/terraform.tfvars" -auto-approve
+
+      - name: Terraform Plan
+        if: ${{ env.destroy != true && github.event_name == 'pull_request'}}
+        id: plan
+        run: terraform plan -out plan.tf -var-file="./envs/${{ env.WORKSPACE }}/terraform.tfvars" -no-color
+
+      - name: Terraform Resources List
+        uses: borchero/terraform-plan-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          token: ${{ github.token }}
+          planfile: plan.tf
+          working-directory: ./terraform
+
+      - name: Terraform Apply
+        if: ${{ env.destroy != true && github.event_name == 'push'}} 
+        id: apply
+        run: terraform apply -var-file="./envs/${{ env.WORKSPACE }}/terraform.tfvars" -auto-approve

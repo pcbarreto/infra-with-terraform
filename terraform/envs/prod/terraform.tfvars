@@ -1,0 +1,17 @@
+vpc_name                   = "vpc-prod"
+cluster_name               = "production"
+vpc_cidr                   = "10.10.0.0/16"
+cluster_version            = "1.31"
+ami_type                   = "AL2023_x86_64_STANDARD"
+instance_types             = ["t4g.medium", "m5.large"]
+min_size                   = 2
+max_size                   = 5
+desired_size               = 2
+metrics_server_version     = "3.12.1"
+kube_state_metrics_version = "5.25.1"
+ecr_repository_name        = "prod-images"
+prometheus_stack_versions  = "62.7.0"
+db_name                    = "prod"
+identifier                 = "rds-prod-db"
+db_username                = "production"
+name_security_group        = "prod-sg"

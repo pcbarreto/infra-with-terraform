@@ -1,0 +1,17 @@
+vpc_name                   = "vpc-dev"
+cluster_name               = "development"
+vpc_cidr                   = "10.0.0.0/16"
+cluster_version            = "1.31"
+ami_type                   = "AL2023_x86_64_STANDARD"
+instance_types             = ["t3.medium", "t3a.medium"]
+min_size                   = 2
+max_size                   = 3
+desired_size               = 2
+metrics_server_version     = "3.12.1"
+kube_state_metrics_version = "5.25.1"
+ecr_repository_name        = "dev-images"
+prometheus_stack_versions  = "62.7.0"
+db_name                    = "dev"
+identifier                 = "rds-dev-db"
+db_username                = "developer"
+name_security_group        = "dev-sg"
