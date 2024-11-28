@@ -1,4 +1,0 @@
-bucket         = "pcbarretos-terraform-tfstate"
-key            = "prod/terraform.tfstate"
-region         = "us-east-1"
-dynamodb_table = "prod-terraform-tfstate"
